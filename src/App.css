@@ -1,0 +1,68 @@
+.container-fluid{
+  border-top: 3px solid rgba(0, 89, 255, 0.87);
+}
+.dropdown-toggle{
+  outline: none!important;
+  border: none!important;
+  box-shadow: none!important;
+  font-weight: bold;
+  vertical-align: super;
+}
+
+.circle-img{
+  background-color: rgba(0, 89, 255, 0.87);
+  width: 45px;
+  height: 45px;
+  display: inline-flex;
+  color: white;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.bg-info{
+  background-color: #d1ecf1!important;
+}
+.bg-secondary{
+  background-color: #6c757d!important;
+}
+
+.background-grey{
+  background-color: #eafcff;
+  height: 80vh;
+  overflow-y: auto;
+  padding-bottom: 10px;
+  border-radius: 15px;
+}
+.card{
+  margin-bottom: 10px;
+  border-radius: 10px;
+}
+
+.bg-grey{
+  background-color: #d1ecf1;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  color: rgba(0, 89, 255, 0.87);
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+}
+
+.task-slider-item{
+  padding-right: 10px;
+}
+
+.slick-slider{
+  user-select: inherit!important;
+}
+
+.form-control[readonly]{
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+
