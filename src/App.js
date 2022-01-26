@@ -9,11 +9,88 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import axios from "axios";
 import serialize from "form-serialize";
+import { List, arrayMove } from "react-movable";
+
+function ListView(props) {
+  const context = useContext(AuthenticationContext);
+  const [tasks, setTasks] = useState(props.tasks);
+
+  const orderItems = async (items) => {
+    setTasks(items)
+    let data = items.map((item, index) => {
+      item.order = index;
+      return item.id;
+    });
+
+    let authentication = JSON.parse(localStorage.getItem("authentication"));
+
+    axios.interceptors.request.use(
+      (config) => {
+        config.headers.authorization = `Bearer ${authentication.token}`;
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    let response = await axios.post(
+      `${process.env.REACT_APP_API_URL}/update-task-order`,
+      data
+    );
+
+    response = response.data;
+
+    if (response.status === "success") {
+      context.loadBoard();
+    }
+  };
+
+
+  const handleClick = () => {
+    console.log('single')
+  }
+  const refCallback = (el) => {
+    if (el) {
+      let task = tasks.filter(item => item.id == el.id)
+      console.log(task)
+      console.log(el.id)
+      props.updateAddTask(props.id, task[0])
+    }
+  }
+  return (
+    <List
+      values={tasks}
+      onChange={({ oldIndex, newIndex }) =>
+        orderItems(arrayMove(tasks, oldIndex, newIndex))
+      }
+      renderList={({ children, props }) => (
+        <div className="col-12 " {...props}>
+          {children}
+        </div>
+      )}
+      renderItem={({ value, props }) => (
+        <div className="card task-card" {...props}>
+          <div
+            className="card-body"
+            
+          >
+            <h5>
+              {value.title} <span id={value.id} onClick={handleClick} ref={refCallback}><i  className="fa fa-edit" ></i></span>
+            </h5>
+            <p>{value.description}</p>
+          </div>
+        </div>
+      )}
+    />
+  );
+}
 
 function App() {
   const context = useContext(AuthenticationContext);
   const [boards, setBoards] = useState(null);
   const [taskUpdateAdd, setTaskUpdateAdd] = useState(false);
+
   const login = async (event) => {
     event.preventDefault();
     // console.log(this.context)
@@ -96,9 +173,7 @@ function App() {
         return Promise.reject(error);
       }
     );
-    let response = await axios.post(
-      `${process.env.REACT_APP_API_URL}/logout`
-    );
+    let response = await axios.post(`${process.env.REACT_APP_API_URL}/logout`);
     response = response.data;
 
     if (response.status === "success") {
@@ -135,7 +210,7 @@ function App() {
     if (response.status === "success") {
       toast.success(response.message);
       context.loadBoard();
-      event.target.reset()
+      event.target.reset();
     }
     if (response.status === "warning") {
       let message = response.message;
@@ -173,7 +248,7 @@ function App() {
     if (response.status === "success") {
       toast.success(response.message);
       context.loadBoard();
-      event.target.reset()
+      event.target.reset();
     }
     if (response.status === "warning") {
       let message = response.message;
@@ -186,22 +261,29 @@ function App() {
   };
 
   const updateBoard = (e, item) => {
-    document.querySelector("#addBoard input[name='id']").value = item.id
-    document.querySelector("#addBoard input[name='title']").value = item.title
-    document.querySelector(".modal_show").click()
-  }
-  const updateAddTask = (e, item, task) => {
-    document.querySelector("#board-" + item.id +" input[name='title']").value = task ? task.title : null
-    document.querySelector("#board-" + item.id +" textarea[name='description']").value = task ? task.description : null
-    document.querySelector("#board-" + item.id +" input[name='id']").value = task ? task.id : 0
-    if(task){
-      document.querySelector("#board-" + item.id +" .updateCreate").classList.remove('d-none')
+    document.querySelector("#addBoard input[name='id']").value = item.id;
+    document.querySelector("#addBoard input[name='title']").value = item.title;
+    document.querySelector(".modal_show").click();
+  };
+  const updateAddTask = (id, task) => {
+    document.querySelector("#board-" + id + " input[name='title']").value =
+      task ? task.title : null;
+    document.querySelector(
+      "#board-" + id + " textarea[name='description']"
+    ).value = task ? task.description : null;
+    document.querySelector("#board-" + id + " input[name='id']").value =
+      task ? task.id : 0;
+    if (task) {
+      document
+        .querySelector("#board-" + id + " .updateCreate")
+        .classList.remove("d-none");
+    } else {
+      document
+        .querySelector("#board-" + id + " .updateCreate")
+        .classList.toggle("d-none");
     }
-    else{
-      document.querySelector("#board-" + item.id +" .updateCreate").classList.toggle('d-none')
-    }
-    
-  }
+  };
+  // const [items, setItems] = React.useState(['Item 1', 'Item 2', 'Item 3']);
 
   var settings = {
     dots: false,
@@ -268,10 +350,11 @@ function App() {
                             </button>
                           </>
                         ) : null}
+
                         {context.isAuthenticated ? (
                           <div class="dropdown">
                             <span className="circle-img rounded-circle d-inline-flex align-items-center">
-                            {context.user.name.charAt(0).toUpperCase()}
+                              {context.user.name.charAt(0).toUpperCase()}
                             </span>
                             <a
                               class="btn dropdown-toggle text-primary d-inline-flex align-items-center"
@@ -310,14 +393,26 @@ function App() {
                   <div className="col-12 pb-2">
                     <Slider {...settings}>
                       {context.boards ? (
-                        context.boards.map((item) => (
-                          <div className="task-slider-item" id={`board-${item.id}`}>
+                        context.boards.map((item, index) => (
+                          <div
+                            key={index}
+                            className="task-slider-item"
+                            id={`board-${item.id}`}
+                          >
                             <div className="background-grey">
                               <div className="row m-0">
-                                <div className="col-10 py-2" onDoubleClick={(e) => updateBoard(e, item)}>
+                                <div
+                                  className="col-10 py-2"
+                                  onDoubleClick={(e) => updateBoard(e, item)}
+                                >
                                   {item.title}{" "}
                                   <span class="badge bg-secondary">
-                                    {item.tasks.filter(item =>item.user_id === context.user.id).length}
+                                    {
+                                      item.tasks.filter(
+                                        (item) =>
+                                          item.user_id === context.user.id
+                                      ).length
+                                    }
                                   </span>
                                 </div>
                                 <div className="col-2 py-2">
@@ -332,7 +427,7 @@ function App() {
                               </div>
                               <div className="row m-0">
                                 <div className="col-12 my-3">
-                                  <form 
+                                  <form
                                     className="updateCreate d-none"
                                     onSubmit={addUpdateTask}
                                   >
@@ -362,23 +457,16 @@ function App() {
                                       </button>
                                     </div>
                                   </form>
-                                  <button className="btn btn-secondary w-100" onClick={(e) => updateAddTask(e, item)}>
+                                  <button
+                                    className="btn btn-secondary w-100"
+                                    onClick={(e) => updateAddTask(item.id)}
+                                  >
                                     <i class="fa fa-plus"></i> Add Task
                                   </button>
                                 </div>
-                                <div className="col-12 ">
                                 {
-                                  item.tasks.length > 0 ? item.tasks.filter(item =>item.user_id === context.user.id).map(task => <div className="card">
-                                    <div id={task.id} className="card-body" onDoubleClick={(e) => updateAddTask(e, item, task)}>
-                                      <h5>{task.title}</h5>
-                                      <p>
-                                        {task.description}
-                                      </p>
-                                    </div>
-                                  </div>) : null
+                                  item.tasks ? <ListView tasks={item.tasks} updateAddTask={updateAddTask} id={item.id} /> : null
                                 }
-                                  
-                                </div>
                               </div>
                             </div>
                           </div>
