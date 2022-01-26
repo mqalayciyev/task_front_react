@@ -47,16 +47,9 @@ function ListView(props) {
   };
 
 
-  const handleClick = () => {
-    console.log('single')
-  }
-  const refCallback = (el) => {
-    if (el) {
-      let task = tasks.filter(item => item.id == el.id)
-      console.log(task)
-      console.log(el.id)
-      props.updateAddTask(props.id, task[0])
-    }
+  const handleClick = (item) => {
+    console.log(item)
+    props.updateAddTask(props.id, item)
   }
   return (
     <List
@@ -64,23 +57,33 @@ function ListView(props) {
       onChange={({ oldIndex, newIndex }) =>
         orderItems(arrayMove(tasks, oldIndex, newIndex))
       }
-      renderList={({ children, props }) => (
-        <div className="col-12 " {...props}>
+      renderList={({ children, props, isDragged}) => (
+        <ul className="col-12 " {...props} style={{ cursor: isDragged ? 'grabbing' : undefined }}>
           {children}
-        </div>
+        </ul>
       )}
-      renderItem={({ value, props }) => (
-        <div className="card task-card" {...props}>
+      renderItem={({ value, props, isDragged, isSelected }) => (
+        <li className="card task-card" {...props}
+        
+        style={{
+              ...props.style,
+              cursor: isDragged ? 'grabbing' : 'grab',
+              backgroundColor: isDragged || isSelected ? '#EEE' : '#FFF'
+            }}>
           <div
             className="card-body"
-            
+            data-movable-handle
           >
             <h5>
-              {value.title} <span id={value.id} onClick={handleClick} ref={refCallback}><i  className="fa fa-edit" ></i></span>
+              {value.title} 
             </h5>
             <p>{value.description}</p>
           </div>
-        </div>
+          <div className="card-footer">
+          <span id={value.id} onDoubleClick={() => handleClick(value)} ><i  className="fa fa-edit fa-2x" ></i></span>
+          </div>
+          
+        </li>
       )}
     />
   );
